@@ -5,6 +5,7 @@ let draggedTicket = null;
 document.addEventListener('DOMContentLoaded', () => {
   initDragAndDrop();
   initTagAutocomplete();
+  initAddFormEnterKey();
 });
 
 function initDragAndDrop() {
@@ -108,6 +109,20 @@ function getDragAfterElement(list, y) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
+// --- Enter key to submit add ticket form ---
+
+function initAddFormEnterKey() {
+  const titleInput = document.getElementById('add-title');
+  if (!titleInput) return;
+
+  titleInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('add-ticket-form').requestSubmit();
+    }
+  });
+}
+
 // --- Tag Autocomplete for Add Modal ---
 
 let selectedTagIds = [];
@@ -117,17 +132,10 @@ function initTagAutocomplete() {
   const dropdown = document.getElementById('add-tag-dropdown');
   if (!input || !dropdown) return;
 
-  input.addEventListener('input', () => {
-    const query = input.value.trim().toLowerCase();
+  function showDropdown(query) {
     const allTags = window.__allTags || [];
-
-    if (!query) {
-      dropdown.classList.add('hidden');
-      return;
-    }
-
     const filtered = allTags.filter(tag =>
-      tag.name.toLowerCase().includes(query) && !selectedTagIds.includes(tag.id)
+      (!query || tag.name.toLowerCase().includes(query)) && !selectedTagIds.includes(tag.id)
     );
 
     if (filtered.length === 0) {
@@ -139,7 +147,7 @@ function initTagAutocomplete() {
     filtered.forEach(tag => {
       const option = document.createElement('div');
       option.className = 'tag-autocomplete-option';
-      option.innerHTML = `<span class="tag-color-dot" style="background:${tag.color}"></span>${tag.name}`;
+      option.innerHTML = '<span class="tag-color-dot" style="background:' + tag.color + '"></span>' + escapeHtml(tag.name);
       option.addEventListener('click', () => {
         selectTagForNewTicket(tag);
         input.value = '';
@@ -148,6 +156,14 @@ function initTagAutocomplete() {
       dropdown.appendChild(option);
     });
     dropdown.classList.remove('hidden');
+  }
+
+  input.addEventListener('focus', () => {
+    showDropdown(input.value.trim().toLowerCase());
+  });
+
+  input.addEventListener('input', () => {
+    showDropdown(input.value.trim().toLowerCase());
   });
 
   input.addEventListener('keydown', (e) => {
@@ -155,10 +171,15 @@ function initTagAutocomplete() {
       dropdown.classList.add('hidden');
     }
     if (e.key === 'Enter') {
-      e.preventDefault();
+      const dropdownVisible = !dropdown.classList.contains('hidden');
       const firstOption = dropdown.querySelector('.tag-autocomplete-option');
-      if (firstOption && !dropdown.classList.contains('hidden')) {
+      if (dropdownVisible && firstOption) {
+        e.preventDefault();
         firstOption.click();
+      } else {
+        // Let Enter submit the form
+        e.preventDefault();
+        document.getElementById('add-ticket-form').requestSubmit();
       }
     }
   });
@@ -179,14 +200,14 @@ function selectTagForNewTicket(tag) {
   span.className = 'tag';
   span.style.backgroundColor = tag.color;
   span.dataset.tagId = tag.id;
-  span.innerHTML = `${tag.name}<button type="button" class="tag-remove-btn" onclick="deselectTagForNewTicket(${tag.id})">&times;</button>`;
+  span.innerHTML = escapeHtml(tag.name) + '<button type="button" class="tag-remove-btn" onclick="deselectTagForNewTicket(' + tag.id + ')">&times;</button>';
   container.appendChild(span);
 }
 
 function deselectTagForNewTicket(tagId) {
   selectedTagIds = selectedTagIds.filter(id => id !== tagId);
   const container = document.getElementById('add-selected-tags');
-  const el = container.querySelector(`[data-tag-id="${tagId}"]`);
+  const el = container.querySelector('[data-tag-id="' + tagId + '"]');
   if (el) el.remove();
 }
 
@@ -201,9 +222,12 @@ function openAddModal(column) {
 function closeAddModal() {
   document.getElementById('add-modal').classList.add('hidden');
   document.getElementById('add-title').value = '';
-  document.getElementById('add-tag-input').value = '';
-  document.getElementById('add-tag-dropdown').classList.add('hidden');
-  document.getElementById('add-selected-tags').innerHTML = '';
+  var tagInput = document.getElementById('add-tag-input');
+  if (tagInput) tagInput.value = '';
+  var tagDropdown = document.getElementById('add-tag-dropdown');
+  if (tagDropdown) tagDropdown.classList.add('hidden');
+  var selectedContainer = document.getElementById('add-selected-tags');
+  if (selectedContainer) selectedContainer.innerHTML = '';
   selectedTagIds = [];
 }
 
@@ -225,10 +249,10 @@ function addTicket(e) {
     // Add tags sequentially
     const addTagsSequentially = selectedTagIds.reduce((promise, tagId) => {
       return promise.then(() =>
-        fetch(`/api/tickets/${ticket.id}/tags`, {
+        fetch('/api/tickets/' + ticket.id + '/tags', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tagId })
+          body: JSON.stringify({ tagId: tagId })
         })
       );
     }, Promise.resolve());
@@ -255,7 +279,7 @@ function openTicketPanel(ticketId) {
   inner.innerHTML = '<p style="color:#6b6b6b;padding:20px;">Loading...</p>';
   panel.classList.add('open');
 
-  fetch(`/api/tickets/${ticketId}`)
+  fetch('/api/tickets/' + ticketId)
     .then(res => res.json())
     .then(data => {
       renderTicketPanel(data);
@@ -273,98 +297,100 @@ function formatDateStr(dateStr) {
 }
 
 function renderTicketPanel(data) {
-  const { ticket, tags, allTags, comments } = data;
+  const ticket = data.ticket;
+  const tags = data.tags;
+  const allTags = data.allTags;
+  const comments = data.comments;
   const inner = document.getElementById('ticket-panel-inner');
 
-  const badgeClass = `badge-${ticket.column_name}`;
+  const badgeClass = 'badge-' + ticket.column_name;
 
-  const tagsHtml = tags.map(t =>
-    `<span class="tag" style="background-color:${t.color}" data-tag-id="${t.id}">
-      ${t.name}
-      <button class="tag-remove" onclick="panelRemoveTag(${ticket.id}, ${t.id})">&times;</button>
-    </span>`
-  ).join('');
+  const tagsHtml = tags.map(function(t) {
+    return '<span class="tag" style="background-color:' + t.color + '" data-tag-id="' + t.id + '">' +
+      escapeHtml(t.name) +
+      '<button class="tag-remove" onclick="panelRemoveTag(' + ticket.id + ', ' + t.id + ')">&times;</button>' +
+    '</span>';
+  }).join('');
 
-  const tagOptions = allTags.map(t =>
-    `<option value="${t.id}">${t.name}</option>`
-  ).join('');
+  const tagOptions = allTags.map(function(t) {
+    return '<option value="' + t.id + '">' + escapeHtml(t.name) + '</option>';
+  }).join('');
 
-  const commentsHtml = comments.map(c =>
-    `<div class="comment" data-comment-id="${c.id}">
-      <div class="comment-body">${escapeHtml(c.body)}</div>
-      <div class="comment-meta">
-        ${formatDateStr(c.created_at)}
-        <button class="btn-link btn-danger" onclick="panelDeleteComment(${c.id}, ${ticket.id})">Delete</button>
-      </div>
-    </div>`
-  ).join('');
+  const commentsHtml = comments.map(function(c) {
+    return '<div class="comment" data-comment-id="' + c.id + '">' +
+      '<div class="comment-body">' + escapeHtml(c.body) + '</div>' +
+      '<div class="comment-meta">' +
+        formatDateStr(c.created_at) +
+        ' <button class="btn-link btn-danger" onclick="panelDeleteComment(' + c.id + ', ' + ticket.id + ')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 
-  inner.innerHTML = `
-    <div class="ticket-detail-header">
-      <h2 id="panel-ticket-title" contenteditable="true" data-id="${ticket.id}">${escapeHtml(ticket.title)}</h2>
-      <span class="ticket-column-badge ${badgeClass}">${ticket.column_name}</span>
-    </div>
+  inner.innerHTML =
+    '<div class="ticket-detail-header">' +
+      '<h2 id="panel-ticket-title" contenteditable="true" data-id="' + ticket.id + '">' + escapeHtml(ticket.title) + '</h2>' +
+      '<span class="ticket-column-badge ' + badgeClass + '">' + ticket.column_name + '</span>' +
+    '</div>' +
 
-    <div class="ticket-detail-meta">
-      Created ${formatDateStr(ticket.created_at)}
-    </div>
+    '<div class="ticket-detail-meta">' +
+      'Created ' + formatDateStr(ticket.created_at) +
+    '</div>' +
 
-    <div class="ticket-section">
-      <h3>Description</h3>
-      <textarea id="panel-ticket-description" data-id="${ticket.id}" placeholder="Add a description..." rows="4">${escapeHtml(ticket.description || '')}</textarea>
-      <button class="btn btn-primary btn-sm" onclick="panelSaveDescription()">Save</button>
-    </div>
+    '<div class="ticket-section">' +
+      '<h3>Description</h3>' +
+      '<textarea id="panel-ticket-description" data-id="' + ticket.id + '" placeholder="Add a description..." rows="4">' + escapeHtml(ticket.description || '') + '</textarea>' +
+      '<button class="btn btn-primary btn-sm" onclick="panelSaveDescription()">Save</button>' +
+    '</div>' +
 
-    <div class="ticket-section">
-      <h3>Tags</h3>
-      <div id="panel-ticket-tags" class="ticket-tags">
-        ${tagsHtml}
-      </div>
-      <div class="tag-add-row">
-        <select id="panel-tag-select">
-          <option value="">Add a tag...</option>
-          ${tagOptions}
-        </select>
-        <button class="btn btn-sm btn-primary" onclick="panelAddTag(${ticket.id})">Add</button>
-        <button class="btn btn-sm btn-secondary" onclick="openTagModal()">Manage Tags</button>
-      </div>
-    </div>
+    '<div class="ticket-section">' +
+      '<h3>Tags</h3>' +
+      '<div id="panel-ticket-tags" class="ticket-tags">' +
+        tagsHtml +
+      '</div>' +
+      '<div class="tag-add-row">' +
+        '<select id="panel-tag-select">' +
+          '<option value="">Add a tag...</option>' +
+          tagOptions +
+        '</select>' +
+        '<button class="btn btn-sm btn-primary" onclick="panelAddTag(' + ticket.id + ')">Add</button>' +
+        '<button class="btn btn-sm btn-secondary" onclick="openTagModal()">Manage Tags</button>' +
+      '</div>' +
+    '</div>' +
 
-    <div class="ticket-section">
-      <h3>Comments</h3>
-      <form onsubmit="panelAddComment(event, ${ticket.id})">
-        <textarea id="panel-comment-body" placeholder="Write a comment..." rows="3" required></textarea>
-        <button type="submit" class="btn btn-primary btn-sm">Add Comment</button>
-      </form>
-      <div id="panel-comments-list" class="comments-list">
-        ${commentsHtml}
-      </div>
-    </div>
+    '<div class="ticket-section">' +
+      '<h3>Comments</h3>' +
+      '<form onsubmit="panelAddComment(event, ' + ticket.id + ')">' +
+        '<textarea id="panel-comment-body" placeholder="Write a comment..." rows="3" required></textarea>' +
+        '<button type="submit" class="btn btn-primary btn-sm">Add Comment</button>' +
+      '</form>' +
+      '<div id="panel-comments-list" class="comments-list">' +
+        commentsHtml +
+      '</div>' +
+    '</div>' +
 
-    <div class="ticket-section ticket-danger-zone">
-      <button class="btn btn-danger" onclick="panelDeleteTicket(${ticket.id})">Delete Ticket</button>
-    </div>
-  `;
+    '<div class="ticket-section ticket-danger-zone">' +
+      '<button class="btn btn-danger" onclick="panelDeleteTicket(' + ticket.id + ')">Delete Ticket</button>' +
+    '</div>';
 
   // Set up title auto-save
-  const titleEl = document.getElementById('panel-ticket-title');
-  titleEl.addEventListener('blur', () => {
-    const id = titleEl.dataset.id;
-    const title = titleEl.textContent.trim();
+  var titleEl = document.getElementById('panel-ticket-title');
+  titleEl.addEventListener('blur', function() {
+    var id = titleEl.dataset.id;
+    var title = titleEl.textContent.trim();
     if (!title) return;
-    fetch(`/api/tickets/${id}`, {
+    fetch('/api/tickets/' + id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title })
-    }).then(() => {
+      body: JSON.stringify({ title: title })
+    }).then(function() {
       // Update the card title on the board
-      const card = document.querySelector(`.ticket[data-id="${id}"] .ticket-title a`);
+      var card = document.querySelector('.ticket[data-id="' + id + '"] .ticket-title a');
       if (card) card.textContent = title;
       showFlash('Title saved');
     });
   });
 
-  titleEl.addEventListener('keydown', (e) => {
+  titleEl.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       titleEl.blur();
@@ -373,73 +399,74 @@ function renderTicketPanel(data) {
 }
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
+  var div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
 function panelSaveDescription() {
-  const textarea = document.getElementById('panel-ticket-description');
-  const id = textarea.dataset.id;
+  var textarea = document.getElementById('panel-ticket-description');
+  var id = textarea.dataset.id;
 
-  fetch(`/api/tickets/${id}`, {
+  fetch('/api/tickets/' + id, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ description: textarea.value })
-  }).then(() => {
+  }).then(function() {
     showFlash('Description saved');
   });
 }
 
 function panelAddTag(ticketId) {
-  const select = document.getElementById('panel-tag-select');
-  const tagId = select.value;
+  var select = document.getElementById('panel-tag-select');
+  var tagId = select.value;
   if (!tagId) return;
 
-  fetch(`/api/tickets/${ticketId}/tags`, {
+  fetch('/api/tickets/' + ticketId + '/tags', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tagId: parseInt(tagId) })
-  }).then(() => {
+  }).then(function() {
     openTicketPanel(ticketId);
-    location.reload();
+    // Reload to update board tags
+    setTimeout(function() { location.reload(); }, 300);
   });
 }
 
 function panelRemoveTag(ticketId, tagId) {
-  fetch(`/api/tickets/${ticketId}/tags/${tagId}`, { method: 'DELETE' })
-    .then(() => {
+  fetch('/api/tickets/' + ticketId + '/tags/' + tagId, { method: 'DELETE' })
+    .then(function() {
       openTicketPanel(ticketId);
-      location.reload();
+      setTimeout(function() { location.reload(); }, 300);
     });
 }
 
 function panelAddComment(e, ticketId) {
   e.preventDefault();
-  const body = document.getElementById('panel-comment-body').value.trim();
+  var body = document.getElementById('panel-comment-body').value.trim();
   if (!body) return;
 
-  fetch(`/api/tickets/${ticketId}/comments`, {
+  fetch('/api/tickets/' + ticketId + '/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body })
-  }).then(() => {
+    body: JSON.stringify({ body: body })
+  }).then(function() {
     openTicketPanel(ticketId);
   });
 }
 
 function panelDeleteComment(commentId, ticketId) {
   if (!confirm('Delete this comment?')) return;
-  fetch(`/api/comments/${commentId}`, { method: 'DELETE' })
-    .then(() => {
+  fetch('/api/comments/' + commentId, { method: 'DELETE' })
+    .then(function() {
       openTicketPanel(ticketId);
     });
 }
 
 function panelDeleteTicket(ticketId) {
   if (!confirm('Delete this ticket? This cannot be undone.')) return;
-  fetch(`/api/tickets/${ticketId}`, { method: 'DELETE' })
-    .then(() => {
+  fetch('/api/tickets/' + ticketId, { method: 'DELETE' })
+    .then(function() {
       closeTicketPanel();
       location.reload();
     });
@@ -448,35 +475,35 @@ function panelDeleteTicket(ticketId) {
 // --- Ticket Detail Page (for direct URL access) ---
 
 function saveDescription() {
-  const textarea = document.getElementById('ticket-description');
-  const id = textarea.dataset.id;
+  var textarea = document.getElementById('ticket-description');
+  var id = textarea.dataset.id;
 
-  fetch(`/api/tickets/${id}`, {
+  fetch('/api/tickets/' + id, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ description: textarea.value })
-  }).then(() => {
+  }).then(function() {
     showFlash('Description saved');
   });
 }
 
 // Save title on blur (ticket detail page)
-document.addEventListener('DOMContentLoaded', () => {
-  const titleEl = document.getElementById('ticket-title');
+document.addEventListener('DOMContentLoaded', function() {
+  var titleEl = document.getElementById('ticket-title');
   if (titleEl) {
-    titleEl.addEventListener('blur', () => {
-      const id = titleEl.dataset.id;
-      const title = titleEl.textContent.trim();
+    titleEl.addEventListener('blur', function() {
+      var id = titleEl.dataset.id;
+      var title = titleEl.textContent.trim();
       if (!title) return;
 
-      fetch(`/api/tickets/${id}`, {
+      fetch('/api/tickets/' + id, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
+        body: JSON.stringify({ title: title })
       });
     });
 
-    titleEl.addEventListener('keydown', (e) => {
+    titleEl.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
         titleEl.blur();
@@ -488,20 +515,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- Tags (ticket detail page) ---
 
 function addTagToTicket(ticketId) {
-  const select = document.getElementById('tag-select');
-  const tagId = select.value;
+  var select = document.getElementById('tag-select');
+  var tagId = select.value;
   if (!tagId) return;
 
-  fetch(`/api/tickets/${ticketId}/tags`, {
+  fetch('/api/tickets/' + ticketId + '/tags', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tagId: parseInt(tagId) })
-  }).then(() => location.reload());
+  }).then(function() { location.reload(); });
 }
 
 function removeTag(ticketId, tagId) {
-  fetch(`/api/tickets/${ticketId}/tags/${tagId}`, { method: 'DELETE' })
-    .then(() => location.reload());
+  fetch('/api/tickets/' + ticketId + '/tags/' + tagId, { method: 'DELETE' })
+    .then(function() { location.reload(); });
 }
 
 function openTagModal() {
@@ -514,55 +541,55 @@ function closeTagModal() {
 
 function addTag(e) {
   e.preventDefault();
-  const name = document.getElementById('tag-name').value.trim();
-  const color = document.getElementById('tag-color').value;
+  var name = document.getElementById('tag-name').value.trim();
+  var color = document.getElementById('tag-color').value;
   if (!name) return;
 
   fetch('/api/tags', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, color })
-  }).then(() => location.reload());
+    body: JSON.stringify({ name: name, color: color })
+  }).then(function() { location.reload(); });
 }
 
 function deleteTag(tagId) {
   if (!confirm('Delete this tag from all tickets?')) return;
-  fetch(`/api/tags/${tagId}`, { method: 'DELETE' })
-    .then(() => location.reload());
+  fetch('/api/tags/' + tagId, { method: 'DELETE' })
+    .then(function() { location.reload(); });
 }
 
 // --- Comments (ticket detail page) ---
 
 function addComment(e, ticketId) {
   e.preventDefault();
-  const body = document.getElementById('comment-body').value.trim();
+  var body = document.getElementById('comment-body').value.trim();
   if (!body) return;
 
-  fetch(`/api/tickets/${ticketId}/comments`, {
+  fetch('/api/tickets/' + ticketId + '/comments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body })
-  }).then(() => location.reload());
+    body: JSON.stringify({ body: body })
+  }).then(function() { location.reload(); });
 }
 
 function deleteComment(commentId) {
   if (!confirm('Delete this comment?')) return;
-  fetch(`/api/comments/${commentId}`, { method: 'DELETE' })
-    .then(() => location.reload());
+  fetch('/api/comments/' + commentId, { method: 'DELETE' })
+    .then(function() { location.reload(); });
 }
 
 // --- Delete Ticket (ticket detail page) ---
 
 function deleteTicket(ticketId) {
   if (!confirm('Delete this ticket? This cannot be undone.')) return;
-  fetch(`/api/tickets/${ticketId}`, { method: 'DELETE' })
-    .then(() => { window.location.href = '/'; });
+  fetch('/api/tickets/' + ticketId, { method: 'DELETE' })
+    .then(function() { window.location.href = '/'; });
 }
 
 // --- Flash messages ---
 
 function showFlash(msg) {
-  let flash = document.getElementById('flash');
+  var flash = document.getElementById('flash');
   if (!flash) {
     flash = document.createElement('div');
     flash.id = 'flash';
@@ -570,5 +597,5 @@ function showFlash(msg) {
   }
   flash.textContent = msg;
   flash.classList.add('show');
-  setTimeout(() => flash.classList.remove('show'), 2000);
+  setTimeout(function() { flash.classList.remove('show'); }, 2000);
 }

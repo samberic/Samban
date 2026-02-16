@@ -1,4 +1,4 @@
-<div class="ticket" draggable="true" data-id="{{id}}">
+<div class="ticket" draggable="true" data-id="{{id}}"{{#if tags.length}} style="border-left-color: {{tags.[0].color}}"{{/if}}>
   <div class="ticket-title">
     <a href="javascript:void(0)" onclick="openTicketPanel({{id}})">{{title}}</a>
   </div>
