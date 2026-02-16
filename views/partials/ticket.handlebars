@@ -1,6 +1,6 @@
 <div class="ticket" draggable="true" data-id="{{id}}">
   <div class="ticket-title">
-    <a href="/ticket/{{id}}">{{title}}</a>
+    <a href="javascript:void(0)" onclick="openTicketPanel({{id}})">{{title}}</a>
   </div>
   {{#if tags.length}}
     <div class="ticket-tags">

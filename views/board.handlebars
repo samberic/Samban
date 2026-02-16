@@ -1,8 +1,19 @@
-<div class="board">
-  {{> column title="To Do" columnName="todo" tickets=todo}}
-  {{> column title="Doing" columnName="doing" tickets=doing}}
-  {{> column title="Done" columnName="done" tickets=done doneCount=doneCount}}
+<div class="board-wrapper">
+  <div class="board">
+    {{> column title="To Do" columnName="todo" tickets=todo}}
+    {{> column title="Doing" columnName="doing" tickets=doing}}
+    {{> column title="Done" columnName="done" tickets=done doneCount=doneCount}}
+  </div>
+  <div id="ticket-panel" class="ticket-panel">
+    <button class="ticket-panel-close" onclick="closeTicketPanel()">&times;</button>
+    <div class="ticket-panel-inner" id="ticket-panel-inner">
+    </div>
+  </div>
 </div>
+
+<script>
+  window.__allTags = {{{json allTags}}};
+</script>
 
 {{> addTicketModal}}
 {{> tagManagerModal allTags=allTags}}

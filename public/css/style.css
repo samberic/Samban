@@ -1,18 +1,20 @@
 /* === Variables === */
 :root {
   --pink: #f179af;
+  --pink-dark: #e0609a;
+  --pink-light: #f9c2d9;
   --green: #385a43;
   --cream: #ebe9d5;
   --coral: #e58b87;
   --teal: #85b6b4;
 
-  --bg: #faf9f4;
+  --bg: #fdf7fa;
   --text: #2a2a2a;
   --text-muted: #6b6b6b;
-  --border: #d4d2c0;
+  --border: #e8d4dc;
   --card-bg: #ffffff;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08);
-  --radius: 6px;
+  --shadow: 0 1px 3px rgba(241,121,175,0.1);
+  --radius: 8px;
 }
 
 /* === Reset === */
@@ -23,53 +25,63 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.6;
   min-height: 100vh;
 }
 
 a {
-  color: var(--green);
+  color: var(--pink-dark);
   text-decoration: none;
 }
 a:hover {
+  color: var(--pink);
   text-decoration: underline;
 }
 
 /* === Header === */
 header {
-  background: var(--green);
-  color: var(--cream);
-  padding: 12px 24px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+  color: #fff;
+  padding: 14px 24px;
+  box-shadow: 0 2px 12px rgba(241,121,175,0.3);
 }
 
 header h1 {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
-/* === Board === */
+/* === Board layout with side panel === */
+.board-wrapper {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
 .board {
   display: flex;
   gap: 16px;
   padding: 20px;
   min-height: calc(100vh - 60px);
   overflow-x: auto;
+  flex: 1;
+  transition: flex 0.3s ease;
 }
 
 .column {
   flex: 1;
-  min-width: 280px;
+  min-width: 260px;
   max-width: 400px;
-  background: var(--cream);
+  background: #fff;
   border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(241,121,175,0.06);
 }
 
 .column-header {
@@ -77,13 +89,14 @@ header h1 {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 2px solid var(--pink);
+  border-bottom: 3px solid var(--pink);
+  background: linear-gradient(180deg, rgba(241,121,175,0.06) 0%, transparent 100%);
 }
 
 .column-header h2 {
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--green);
+  font-weight: 700;
+  color: var(--pink-dark);
 }
 
 .column-header .count {
@@ -116,12 +129,13 @@ header h1 {
   margin-bottom: 8px;
   box-shadow: var(--shadow);
   cursor: grab;
-  border-left: 3px solid var(--pink);
-  transition: box-shadow 0.15s, opacity 0.15s, transform 0.15s;
+  border-left: 4px solid var(--pink);
+  transition: box-shadow 0.15s, opacity 0.15s, transform 0.15s, border-color 0.15s;
 }
 
 .ticket:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 3px 12px rgba(241,121,175,0.18);
+  border-left-color: var(--pink-dark);
 }
 
 .ticket.dragging {
@@ -131,8 +145,9 @@ header h1 {
 
 .ticket-title a {
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
+  cursor: pointer;
 }
 
 .ticket-title a:hover {
@@ -189,8 +204,9 @@ header h1 {
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
+  font-family: 'Poppins', sans-serif;
   padding: 6px 14px;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 .btn:active {
   transform: scale(0.97);
@@ -204,9 +220,11 @@ header h1 {
 .btn-primary {
   background: var(--pink);
   color: #fff;
+  box-shadow: 0 2px 6px rgba(241,121,175,0.3);
 }
 .btn-primary:hover {
-  background: #e0609a;
+  background: var(--pink-dark);
+  box-shadow: 0 3px 10px rgba(241,121,175,0.4);
 }
 
 .btn-secondary {
@@ -226,8 +244,8 @@ header h1 {
 }
 
 .btn-add {
-  background: var(--green);
-  color: var(--cream);
+  background: var(--pink);
+  color: #fff;
   font-size: 1.1rem;
   width: 28px;
   height: 28px;
@@ -236,9 +254,10 @@ header h1 {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(241,121,175,0.3);
 }
 .btn-add:hover {
-  background: #2d4a37;
+  background: var(--pink-dark);
 }
 
 .btn-clear {
@@ -286,7 +305,8 @@ header h1 {
 .modal-backdrop {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(241,121,175,0.15);
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
@@ -296,12 +316,14 @@ header h1 {
   padding: 24px;
   min-width: 360px;
   max-width: 480px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(241,121,175,0.2);
+  border-top: 3px solid var(--pink);
 }
 
 .modal-content h3 {
   margin-bottom: 16px;
-  color: var(--green);
+  color: var(--pink-dark);
+  font-weight: 700;
 }
 
 .modal-content label {
@@ -309,7 +331,7 @@ header h1 {
   font-weight: 600;
   font-size: 0.85rem;
   margin-bottom: 4px;
-  color: var(--text-muted);
+  color: var(--pink-dark);
 }
 
 .modal-content input[type="text"] {
@@ -318,18 +340,115 @@ header h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
   margin-bottom: 16px;
 }
 .modal-content input[type="text"]:focus {
   outline: none;
   border-color: var(--pink);
-  box-shadow: 0 0 0 2px rgba(241,121,175,0.2);
+  box-shadow: 0 0 0 3px rgba(241,121,175,0.2);
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* === Tag autocomplete in add modal === */
+.tag-autocomplete-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.tag-autocomplete-wrapper label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: var(--pink-dark);
+}
+
+.tag-autocomplete-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.tag-autocomplete-input:focus {
+  outline: none;
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(241,121,175,0.2);
+}
+
+.tag-autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.tag-autocomplete-dropdown.hidden {
+  display: none;
+}
+
+.tag-autocomplete-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.1s;
+}
+
+.tag-autocomplete-option:hover,
+.tag-autocomplete-option.active {
+  background: rgba(241,121,175,0.1);
+}
+
+.tag-autocomplete-option .tag-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.selected-tags .tag {
+  cursor: default;
+}
+
+.selected-tags .tag .tag-remove-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 2px;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.selected-tags .tag .tag-remove-btn:hover {
+  opacity: 1;
 }
 
 /* === Tag manager === */
@@ -367,7 +486,177 @@ header h1 {
   padding: 2px;
 }
 
-/* === Ticket detail === */
+/* === Ticket detail side panel === */
+.ticket-panel {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border-left: 3px solid var(--pink);
+  box-shadow: -4px 0 20px rgba(241,121,175,0.1);
+  transition: width 0.3s ease, min-width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.ticket-panel.open {
+  width: 520px;
+  min-width: 520px;
+  overflow-y: auto;
+}
+
+.ticket-panel-inner {
+  padding: 24px;
+  display: none;
+}
+
+.ticket-panel.open .ticket-panel-inner {
+  display: block;
+}
+
+.ticket-panel-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+  z-index: 1;
+}
+
+.ticket-panel-close:hover {
+  background: rgba(241,121,175,0.1);
+  color: var(--pink);
+}
+
+.ticket-panel .ticket-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding-right: 36px;
+}
+
+.ticket-panel .ticket-detail-header h2 {
+  flex: 1;
+  font-size: 1.2rem;
+  outline: none;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+  transition: border-color 0.2s;
+  color: var(--text);
+}
+
+.ticket-panel .ticket-detail-header h2:focus {
+  border-bottom-color: var(--pink);
+}
+
+.ticket-panel .ticket-column-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.ticket-panel .ticket-detail-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.ticket-panel .ticket-section {
+  margin-bottom: 24px;
+}
+
+.ticket-panel .ticket-section h3 {
+  font-size: 0.9rem;
+  color: var(--pink-dark);
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ticket-panel .ticket-section textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-family: 'Poppins', sans-serif;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.ticket-panel .ticket-section textarea:focus {
+  outline: none;
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(241,121,175,0.2);
+}
+
+.ticket-panel .tag-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.ticket-panel .tag-add-row select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* === Comments in panel === */
+.ticket-panel .comments-list {
+  margin-top: 12px;
+}
+
+.ticket-panel .comment {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--teal);
+}
+
+.ticket-panel .comment-body {
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+
+.ticket-panel .comment-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* === Danger zone in panel === */
+.ticket-panel .ticket-danger-zone {
+  padding-top: 16px;
+  border-top: 1px solid var(--coral);
+}
+
+/* === Ticket detail page (for direct URL access) === */
 .ticket-detail {
   max-width: 700px;
   margin: 24px auto;
@@ -378,11 +667,11 @@ header h1 {
   display: inline-block;
   margin-bottom: 16px;
   font-size: 0.9rem;
-  color: var(--teal);
+  color: var(--pink);
   font-weight: 500;
 }
 .back-link:hover {
-  color: var(--green);
+  color: var(--pink-dark);
 }
 
 .ticket-detail-header {
@@ -429,7 +718,8 @@ header h1 {
 
 .ticket-section h3 {
   font-size: 0.95rem;
-  color: var(--green);
+  color: var(--pink-dark);
+  font-weight: 700;
   margin-bottom: 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
@@ -441,14 +731,14 @@ header h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
-  font-family: inherit;
+  font-family: 'Poppins', sans-serif;
   resize: vertical;
   margin-bottom: 8px;
 }
 .ticket-section textarea:focus {
   outline: none;
   border-color: var(--pink);
-  box-shadow: 0 0 0 2px rgba(241,121,175,0.2);
+  box-shadow: 0 0 0 3px rgba(241,121,175,0.2);
 }
 
 .tag-add-row {
@@ -463,6 +753,7 @@ header h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.85rem;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* === Comments === */
@@ -471,7 +762,7 @@ header h1 {
 }
 
 .comment {
-  background: var(--cream);
+  background: var(--bg);
   border-radius: var(--radius);
   padding: 10px 14px;
   margin-bottom: 10px;
@@ -503,8 +794,8 @@ header h1 {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: var(--green);
-  color: var(--cream);
+  background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+  color: #fff;
   padding: 10px 20px;
   border-radius: var(--radius);
   font-size: 0.85rem;
@@ -514,6 +805,7 @@ header h1 {
   transition: opacity 0.3s, transform 0.3s;
   pointer-events: none;
   z-index: 2000;
+  box-shadow: 0 4px 12px rgba(241,121,175,0.3);
 }
 
 #flash.show {
@@ -529,5 +821,14 @@ header h1 {
   }
   .column {
     max-width: 100%;
+  }
+  .ticket-panel.open {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    min-width: 100vw;
+    z-index: 900;
   }
 }

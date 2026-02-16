@@ -82,6 +82,25 @@ app.get('/ticket/:id', (req, res) => {
   res.render('ticket', { ticket, tags, allTags, comments });
 });
 
+// --- API routes: Ticket detail (JSON) ---
+
+app.get('/api/tickets/:id', (req, res) => {
+  const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Not found' });
+
+  const tags = db.prepare(`
+    SELECT tg.* FROM tags tg
+    JOIN ticket_tags tt ON tg.id = tt.tag_id
+    WHERE tt.ticket_id = ?
+  `).all(req.params.id);
+
+  const allTags = db.prepare('SELECT * FROM tags ORDER BY name ASC').all();
+
+  const comments = db.prepare('SELECT * FROM comments WHERE ticket_id = ? ORDER BY created_at DESC').all(req.params.id);
+
+  res.json({ ticket, tags, allTags, comments });
+});
+
 // --- API routes: Tickets ---
 
 app.post('/api/tickets', (req, res) => {
