@@ -6,6 +6,12 @@
       <input type="hidden" id="add-column" value="todo">
       <label for="add-title">Title</label>
       <input type="text" id="add-title" placeholder="What needs doing?" required autofocus>
+      <div class="tag-autocomplete-wrapper">
+        <label>Tags</label>
+        <input type="text" class="tag-autocomplete-input" id="add-tag-input" placeholder="Type to search tags..." autocomplete="off">
+        <div class="tag-autocomplete-dropdown hidden" id="add-tag-dropdown"></div>
+        <div class="selected-tags" id="add-selected-tags"></div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Add</button>
