@@ -1,0 +1,65 @@
+<div class="ticket-detail">
+  <a href="/" class="back-link">&larr; Back to board</a>
+
+  <div class="ticket-detail-header">
+    <h2 id="ticket-title" contenteditable="true" data-id="{{ticket.id}}">{{ticket.title}}</h2>
+    <span class="ticket-column-badge badge-{{ticket.column_name}}">{{ticket.column_name}}</span>
+  </div>
+
+  <div class="ticket-detail-meta">
+    Created {{formatDate ticket.created_at}}
+  </div>
+
+  <div class="ticket-section">
+    <h3>Description</h3>
+    <textarea id="ticket-description" data-id="{{ticket.id}}" placeholder="Add a description..." rows="4">{{ticket.description}}</textarea>
+    <button class="btn btn-primary btn-sm" onclick="saveDescription()">Save</button>
+  </div>
+
+  <div class="ticket-section">
+    <h3>Tags</h3>
+    <div id="ticket-tags" class="ticket-tags">
+      {{#each tags}}
+        <span class="tag" style="background-color: {{color}}" data-tag-id="{{id}}">
+          {{name}}
+          <button class="tag-remove" onclick="removeTag({{../ticket.id}}, {{id}})">&times;</button>
+        </span>
+      {{/each}}
+    </div>
+    <div class="tag-add-row">
+      <select id="tag-select">
+        <option value="">Add a tag...</option>
+        {{#each allTags}}
+          <option value="{{id}}">{{name}}</option>
+        {{/each}}
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="addTagToTicket({{ticket.id}})">Add</button>
+      <button class="btn btn-sm btn-secondary" onclick="openTagModal()">Manage Tags</button>
+    </div>
+  </div>
+
+  <div class="ticket-section">
+    <h3>Comments</h3>
+    <form onsubmit="addComment(event, {{ticket.id}})">
+      <textarea id="comment-body" placeholder="Write a comment..." rows="3" required></textarea>
+      <button type="submit" class="btn btn-primary btn-sm">Add Comment</button>
+    </form>
+    <div id="comments-list" class="comments-list">
+      {{#each comments}}
+        <div class="comment" data-comment-id="{{id}}">
+          <div class="comment-body">{{body}}</div>
+          <div class="comment-meta">
+            {{formatDate created_at}}
+            <button class="btn-link btn-danger" onclick="deleteComment({{id}})">Delete</button>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="ticket-section ticket-danger-zone">
+    <button class="btn btn-danger" onclick="deleteTicket({{ticket.id}})">Delete Ticket</button>
+  </div>
+</div>
+
+{{> tagManagerModal allTags=allTags}}
