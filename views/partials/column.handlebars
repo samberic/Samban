@@ -1,0 +1,16 @@
+<div class="column" data-column="{{columnName}}">
+  <div class="column-header">
+    <h2>{{title}} <span class="count">({{tickets.length}})</span></h2>
+    <div class="column-actions">
+      <button class="btn btn-sm btn-add" onclick="openAddModal('{{columnName}}')" title="Add ticket">+</button>
+      {{#if doneCount}}
+        <button class="btn btn-sm btn-clear" onclick="clearDone()" title="Clear all done tickets">&times;</button>
+      {{/if}}
+    </div>
+  </div>
+  <div class="ticket-list" data-column="{{columnName}}">
+    {{#each tickets}}
+      {{> ticket}}
+    {{/each}}
+  </div>
+</div>

@@ -1,0 +1,8 @@
+<div class="board">
+  {{> column title="To Do" columnName="todo" tickets=todo}}
+  {{> column title="Doing" columnName="doing" tickets=doing}}
+  {{> column title="Done" columnName="done" tickets=done doneCount=doneCount}}
+</div>
+
+{{> addTicketModal}}
+{{> tagManagerModal allTags=allTags}}

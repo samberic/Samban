@@ -1,0 +1,15 @@
+<div id="add-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeAddModal()"></div>
+  <div class="modal-content">
+    <h3>New Ticket</h3>
+    <form id="add-ticket-form" onsubmit="addTicket(event)">
+      <input type="hidden" id="add-column" value="todo">
+      <label for="add-title">Title</label>
+      <input type="text" id="add-title" placeholder="What needs doing?" required autofocus>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add</button>
+      </div>
+    </form>
+  </div>
+</div>

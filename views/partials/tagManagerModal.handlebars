@@ -1,0 +1,24 @@
+<div id="tag-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeTagModal()"></div>
+  <div class="modal-content">
+    <h3>Manage Tags</h3>
+    <div class="tag-list-manage">
+      {{#each allTags}}
+        <div class="tag-item" data-tag-id="{{id}}">
+          <span class="tag" style="background-color: {{color}}">{{name}}</span>
+          <button class="btn btn-sm btn-danger" onclick="deleteTag({{id}})">&times;</button>
+        </div>
+      {{/each}}
+    </div>
+    <form id="add-tag-form" onsubmit="addTag(event)">
+      <div class="tag-form-row">
+        <input type="text" id="tag-name" placeholder="Tag name" required>
+        <input type="color" id="tag-color" value="#f179af">
+        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+      </div>
+    </form>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeTagModal()">Close</button>
+    </div>
+  </div>
+</div>
